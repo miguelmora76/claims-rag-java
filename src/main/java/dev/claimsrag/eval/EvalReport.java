@@ -5,6 +5,7 @@ import java.util.List;
 public record EvalReport(
         List<CaseResult> cases,
         double retrievalRecall,
+        double contextRecall,
         double factCoverage,
         double citationValidity,
         double citationCorrectness,
@@ -16,6 +17,7 @@ public record EvalReport(
     public String toMarkdown() {
         StringBuilder sb = new StringBuilder("# Eval report\n\n| metric | value |\n|---|---|\n");
         row(sb, "retrieval recall (expected doc in top-k)", retrievalRecall);
+        row(sb, "context recall (retrieved text contains the required facts)", contextRecall);
         row(sb, "fact coverage (required facts in answer)", factCoverage);
         row(sb, "citation validity (cites only retrieved chunks)", citationValidity);
         row(sb, "citation correctness (cites expected doc)", citationCorrectness);
@@ -27,7 +29,7 @@ public record EvalReport(
         long failures = cases.stream().filter(c -> !c.passed()).count();
         if (failures == 0) sb.append("none\n");
         for (CaseResult c : cases) {
-            if (!c.passed()) sb.append("- `").append(c.id()).append("` [retrieval=").append(c.retrievalHit()).append(" facts=").append(c.factsPresent())
+            if (!c.passed()) sb.append("- `").append(c.id()).append("` [retrieval=").append(c.retrievalHit()).append(" ctxFacts=").append(c.contextHasFacts()).append(" facts=").append(c.factsPresent())
                     .append(" cited=").append(c.citationsCorrect()).append("]: ").append(c.answer().replace('\n', ' ')).append('\n');
         }
         return sb.toString();

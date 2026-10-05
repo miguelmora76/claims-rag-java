@@ -10,6 +10,7 @@ public class HashingEmbedder implements Embedder {
 
     private static final Set<String> STOP = Set.of("the", "a", "an", "of", "to", "is", "are", "for", "and", "in", "on",
             "what", "how", "does", "do", "my", "i", "it", "be", "can", "or", "by", "with", "that", "this", "when", "if");
+    private static final java.util.regex.Pattern CODE = java.util.regex.Pattern.compile("[a-z]{1,3}-\\d+");
     private final int dims;
     private float[] idf; // per-bucket inverse document frequency; null until fit() is called
 
@@ -42,13 +43,22 @@ public class HashingEmbedder implements Embedder {
     private float[] rawCounts(String text) {
         float[] v = new float[dims];
         String prev = null;
-        for (String raw : text.toLowerCase().split("[^a-z0-9\\-]+")) {
-            if (raw.length() < 2 || STOP.contains(raw)) continue;
-            add(v, raw, 1f);
+        for (String token : text.toLowerCase().split("[^a-z0-9\\-]+")) {
+            if (token.length() < 2 || STOP.contains(token)) continue;
+            String raw = stem(token);
+            add(v, raw, CODE.matcher(raw).matches() ? 3f : 1f); // denial codes like co-27 are strong exact-match signals
             if (prev != null) add(v, prev + "_" + raw, 0.5f);
             prev = raw;
         }
         return v;
+    }
+
+    /** Crude suffix stripping so "decided", "decides" and "decision" land on the same feature. */
+    static String stem(String t) {
+        for (String suffix : new String[] {"ions", "ion", "ing", "ed", "es", "s"}) {
+            if (t.length() > suffix.length() + 3 && t.endsWith(suffix)) return t.substring(0, t.length() - suffix.length());
+        }
+        return t;
     }
 
     private void add(float[] v, String feature, float weight) {

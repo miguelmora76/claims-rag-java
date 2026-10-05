@@ -37,7 +37,14 @@ public class EvalCommand implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         LlmJudge judge = "claude".equalsIgnoreCase(props.provider()) ? new LlmJudge(llm, props) : null;
         EvalRunner runner = new EvalRunner(service, mapper, judge);
-        EvalReport report = runner.run(runner.loadGolden());
+        EvalReport report;
+        try {
+            report = runner.run(runner.loadGolden());
+        } catch (dev.claimsrag.llm.LlmException e) {
+            System.err.println("Eval aborted: " + e.getMessage());
+            System.exit(2);
+            return;
+        }
         String md = report.toMarkdown();
         System.out.println(md);
         Files.createDirectories(Path.of("eval-report"));

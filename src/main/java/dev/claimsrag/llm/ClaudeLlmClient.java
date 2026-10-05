@@ -37,7 +37,7 @@ public class ClaudeLlmClient implements LlmClient {
         } catch (RateLimitException e) {
             throw new LlmException("Claude rate limited", true, e);
         } catch (AnthropicServiceException e) {
-            throw new LlmException("Claude API error " + e.statusCode(), e.statusCode() >= 500, e);
+            throw new LlmException("Claude API error " + e.statusCode() + ": " + e.getMessage(), e.statusCode() >= 500, e);
         } catch (AnthropicIoException e) {
             throw new LlmException("Claude connection error", true, e);
         }

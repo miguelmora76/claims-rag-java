@@ -12,5 +12,5 @@ public record AskResult(
         double costUsd,
         long latencyMs) {
 
-    public record Retrieved(String chunkId, String title, double score) {}
+    public record Retrieved(String chunkId, String title, double score, String text) {}
 }

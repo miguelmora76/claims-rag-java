@@ -4,6 +4,7 @@ public record CaseResult(
         String id,
         boolean answerable,
         boolean retrievalHit,
+        boolean contextHasFacts,
         boolean factsPresent,
         boolean citationsValid,
         boolean citationsCorrect,
@@ -14,6 +15,6 @@ public record CaseResult(
     /** A case passes when every check that applies to it passes. */
     public boolean passed() {
         if (!answerable) return abstainedCorrectly;
-        return retrievalHit && factsPresent && citationsValid && citationsCorrect;
+        return retrievalHit && contextHasFacts && factsPresent && citationsValid && citationsCorrect;
     }
 }

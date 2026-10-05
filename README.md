@@ -39,6 +39,7 @@ With real Claude:
 
 ```bash
 export ANTHROPIC_API_KEY=...
+# user-scoped keys (sk-ant-usr-...) also need: export ANTHROPIC_WORKSPACE_ID=wrkspc_...
 mvn spring-boot:run -Dspring-boot.run.arguments="--assistant.provider=claude"
 ```
 
@@ -59,20 +60,42 @@ The golden set has 15 cases: 12 answerable, 3 not (out of scope, plus a prompt-i
 retrieval recall, required-fact coverage, citation validity, citation correctness, abstention accuracy, pass rate,
 and (live only) judge score. The report is written to `eval-report/report.md`.
 
+### Live run (Claude, one run, 2026-10-05)
+
+First live run against `claude-opus-5-5` (effort low) with `claude-haiku-4-5` as judge, on the retrieval code as of that run:
+
+| metric | value |
+|---|---|
+| retrieval recall (expected doc in top-k) | 100% |
+| fact coverage | 85% |
+| citation validity | 100% |
+| citation correctness | 85% |
+| abstain accuracy | 100% |
+| case pass rate | 88% |
+| judge groundedness (1-5) | 4.27 |
+| cost for the whole run | about $0.05 |
+
+Two cases failed. Both answered `NOT_IN_CONTEXT` although the right document was retrieved. That exposed a weak
+metric: "expected doc in top-k" counts a hit even when the chunk holding the answer was not retrieved. I added
+**context recall** (does the retrieved text contain the required facts), then fixed the causes it pointed at:
+suffix stemming ("decided" vs "decides") and an exact-match boost for denial-code tokens like `CO-27`. Offline
+retrieval and context recall are both 100% on the golden set after that. I have not re-run the live eval since those
+changes, so the table above does not reflect them. It is a single run, a model's output varies between runs, and the
+golden set is small, so treat the numbers as indicative only.
+
 ### What the offline eval does and does not tell you
 
 The offline run uses a fake, extractive "model". It checks the plumbing: retrieval, prompt assembly, citation
 parsing, abstention, cost accounting. The CI gate only asserts those. Fact coverage and pass rate are reported
 but not gated offline, because the fake often picks the wrong sentence from correct context.
-Answer quality needs the live run, and I have not published live numbers here.
+Answer quality needs the live run.
 
-One real finding from building it: the first version of the embedder (plain hashed term counts) missed some questions
-(for example a CO-27 question went to the wrong document). Adding IDF weighting from the corpus fixed it,
-and the eval is what surfaced it (retrieval recall 92% to 100% on the golden set).
+Retrieval changes along the way, each found by the eval: plain hashed term counts missed the CO-27 question;
+IDF weighting fixed that; stemming fixed a "decided"/"decides" miss but exposed another; the code-token boost fixed that one.
 
 ## Known limits
 
-- Embeddings are lexical (hashed unigrams and bigrams with IDF), not semantic. The `Embedder` interface is where a real embedding model would go.
+- Embeddings are lexical (hashed unigrams and bigrams with IDF, crude stemming, code-token boost), not semantic. The `Embedder` interface is where a real embedding model would go.
 - The vector store is brute force and in memory. Fine for hundreds of chunks only.
 - The golden set is small and written by the same person who wrote the corpus, so scores are optimistic.
 - `PhiRedactor` is regex-based and misses names and free text. It shows where redaction belongs; it is not HIPAA de-identification.

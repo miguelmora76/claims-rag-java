@@ -47,7 +47,7 @@ public class AskService {
         String question = PhiRedactor.redact(rawQuestion);
         List<ScoredChunk> hits = retriever.retrieve(question);
         List<AskResult.Retrieved> retrieved = hits.stream()
-                .map(h -> new AskResult.Retrieved(h.chunk().id(), h.chunk().title(), h.score()))
+                .map(h -> new AskResult.Retrieved(h.chunk().id(), h.chunk().title(), h.score(), h.chunk().text()))
                 .toList();
 
         // No relevant context: skip the model call entirely. Cheaper, and nothing to hallucinate from.

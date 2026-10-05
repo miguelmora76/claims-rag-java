@@ -46,6 +46,9 @@ public class EvalRunner {
         Set<String> retrievedIds = r.retrieved().stream().map(AskResult.Retrieved::chunkId).collect(Collectors.toSet());
         Set<String> citedDocs = r.citations().stream().map(EvalRunner::docOf).collect(Collectors.toSet());
 
+        String ctx = r.retrieved().stream().map(AskResult.Retrieved::text).collect(Collectors.joining("\n")).toLowerCase();
+        boolean ctxFacts = g.answerable() && !g.mustContain().isEmpty()
+                && g.mustContain().stream().allMatch(f -> ctx.contains(f.toLowerCase()));
         boolean hit = g.expectedDocs().stream().anyMatch(retrievedDocs::contains);
         String lower = r.answer().toLowerCase();
         boolean facts = r.answered() && g.mustContain().stream().allMatch(f -> lower.contains(f.toLowerCase()));
@@ -57,7 +60,7 @@ public class EvalRunner {
         if (judge != null && g.answerable() && r.answered()) {
             judged = judge.score(contextOf(r), g.question(), r.answer());
         }
-        return new CaseResult(g.id(), g.answerable(), hit, facts, valid, correct, abstained, judged, r.answer());
+        return new CaseResult(g.id(), g.answerable(), hit, ctxFacts, facts, valid, correct, abstained, judged, r.answer());
     }
 
     private static String contextOf(AskResult r) {
@@ -71,9 +74,11 @@ public class EvalRunner {
     static EvalReport aggregate(List<CaseResult> all, double cost) {
         List<CaseResult> ans = all.stream().filter(CaseResult::answerable).toList();
         List<CaseResult> unans = all.stream().filter(c -> !c.answerable()).toList();
+        double ctxRecall = rate(ans, CaseResult::contextHasFacts);
         double judgeAvg = all.stream().filter(c -> c.judgeScore() != null).mapToInt(CaseResult::judgeScore).average().orElse(Double.NaN);
         return new EvalReport(all,
                 rate(ans, CaseResult::retrievalHit),
+                ctxRecall,
                 rate(ans, CaseResult::factsPresent),
                 rate(ans, CaseResult::citationsValid),
                 rate(ans, CaseResult::citationsCorrect),

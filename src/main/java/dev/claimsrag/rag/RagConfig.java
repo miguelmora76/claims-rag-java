@@ -52,7 +52,13 @@ public class RagConfig {
     @Bean
     LlmClient llmClient(AssistantProperties props) {
         if ("claude".equalsIgnoreCase(props.provider())) {
-            AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+            // Reads ANTHROPIC_API_KEY. User-scoped keys (sk-ant-usr-...) also need ANTHROPIC_WORKSPACE_ID.
+            var builder = AnthropicOkHttpClient.builder().fromEnv();
+            String workspace = System.getenv("ANTHROPIC_WORKSPACE_ID");
+            if (workspace != null && !workspace.isBlank()) {
+                builder.putHeader("anthropic-workspace-id", workspace);
+            }
+            AnthropicClient client = builder.build();
             return new ClaudeLlmClient(client);
         }
         return new FakeLlmClient();
