@@ -99,7 +99,7 @@ To use real Claude you need an Anthropic API key. Keys are managed in the Anthro
 
 1. Go to **https://console.anthropic.com** and sign in, or create an account.
 2. Set up billing: open **Billing** (or **Plans & Billing**) and add a payment method or buy a small amount of credit.
-   API usage is pay-as-you-go and a new account has no free allowance you can rely on. One full eval run of this project costs about **5 US cents**.
+   API usage is billed separately from any Claude chat subscription; check the Console for current billing options and any credits on your account. One full eval run of this project costs about **5 US cents**.
 3. Open **Settings → API keys** (direct link: https://console.anthropic.com/settings/keys) and click **Create key**.
    Name it (for example `claims-rag-local`) and, if asked, choose a workspace.
 4. **Copy the key immediately.** It starts with `sk-ant-` and is shown only once. If you lose it, create a new one.
