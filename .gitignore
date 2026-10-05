@@ -1,0 +1,6 @@
+target/
+.idea/
+*.iml
+.env
+eval-report/
+.DS_Store
