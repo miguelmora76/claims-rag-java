@@ -64,7 +64,7 @@ public class EvalRunner {
     }
 
     private static String contextOf(AskResult r) {
-        return r.retrieved().stream().map(x -> x.chunkId() + " (" + x.title() + ")").collect(Collectors.joining(", "));
+        return r.retrieved().stream().map(x -> "[" + x.chunkId() + "] " + x.text()).collect(Collectors.joining("\n"));
     }
 
     private static String docOf(String chunkId) {

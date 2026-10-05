@@ -60,28 +60,32 @@ The golden set has 15 cases: 12 answerable, 3 not (out of scope, plus a prompt-i
 retrieval recall, required-fact coverage, citation validity, citation correctness, abstention accuracy, pass rate,
 and (live only) judge score. The report is written to `eval-report/report.md`.
 
-### Live run (Claude, one run, 2026-10-05)
+### Live run (Claude, 2026-10-05)
 
-First live run against `claude-opus-5-5` (effort low) with `claude-haiku-4-5` as judge, on the retrieval code as of that run:
+Two live runs against `claude-opus-5-5` (effort low), with `claude-haiku-4-5` as judge. The second ran after the retrieval fixes below.
 
-| metric | value |
-|---|---|
-| retrieval recall (expected doc in top-k) | 100% |
-| fact coverage | 85% |
-| citation validity | 100% |
-| citation correctness | 85% |
-| abstain accuracy | 100% |
-| case pass rate | 88% |
-| judge groundedness (1-5) | 4.27 |
-| cost for the whole run | about $0.05 |
+| metric | run 1 (before fixes) | run 2 (after fixes) |
+|---|---|---|
+| retrieval recall (expected doc in top-k) | 100% | 100% |
+| context recall (retrieved text has the facts) | not measured | 100% |
+| fact coverage | 85% | 100% |
+| citation validity | 100% | 100% |
+| citation correctness | 85% | 100% |
+| abstain accuracy | 100% | 100% |
+| case pass rate | 88% | 100% |
+| judge groundedness (1-5) | 4.27 | 3.92 (see note) |
+| cost for the run | about $0.05 | about $0.05 |
 
-Two cases failed. Both answered `NOT_IN_CONTEXT` although the right document was retrieved. That exposed a weak
-metric: "expected doc in top-k" counts a hit even when the chunk holding the answer was not retrieved. I added
-**context recall** (does the retrieved text contain the required facts), then fixed the causes it pointed at:
-suffix stemming ("decided" vs "decides") and an exact-match boost for denial-code tokens like `CO-27`. Offline
-retrieval and context recall are both 100% on the golden set after that. I have not re-run the live eval since those
-changes, so the table above does not reflect them. It is a single run, a model's output varies between runs, and the
-golden set is small, so treat the numbers as indicative only.
+Run 1 had two failures: both answered `NOT_IN_CONTEXT` although the right document was retrieved. That exposed a weak
+metric, because "expected doc in top-k" counts a hit even when the chunk holding the answer was not retrieved. I added
+**context recall**, then fixed the causes it pointed at: suffix stemming ("decided" vs "decides") and an exact-match
+boost for denial-code tokens like `CO-27`.
+
+**Judge note:** in both runs the judge was given only chunk ids and titles, not the chunk text, so its scores do not
+measure groundedness and should be ignored. The bug is fixed in the code but the judge has not been re-run since.
+
+Caveats: single runs, model output varies between runs, the golden set has 15 cases written by the same person who
+wrote the corpus, and I tuned retrieval against that set, so 100% is optimistic and not a generalisation claim.
 
 ### What the offline eval does and does not tell you
 
