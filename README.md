@@ -5,7 +5,7 @@ A sample **Spring Boot** service that answers questions about (invented) health-
 
 > **Honest scope:** this is a learning and portfolio project. It runs on synthetic data, has no real users, and makes no
 > production-scale claims. It shows how I would structure an LLM-backed service, measure its quality and track what it costs.
-> A sibling repo, `claims-rag-python`, implements the same service in Python and FastAPI.
+> A sibling repo, [`claims-rag-python`](https://github.com/MAM-AI-Projects/claims-rag-python), implements the same service in Python and FastAPI.
 
 ## Contents
 
@@ -74,7 +74,7 @@ By default the app uses a **fake model**, so you can build, test and call it wit
 **Prerequisites:** Java 21 or newer, and Maven 3.9 or newer. (Developed on Java 23.)
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/MAM-AI-Projects/claims-rag-java.git
 cd claims-rag-java
 
 mvn verify                 # compile, run unit tests and the offline eval gate
