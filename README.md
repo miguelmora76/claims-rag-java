@@ -200,22 +200,28 @@ rate is below 90% and `2` if the model call fails.
 
 ### Results (live, 2026-10-05, `claude-opus-5-5` at low effort, judge `claude-haiku-4-5`)
 
-| Metric | Run 1 (before retrieval fixes) | Run 2 (after) |
-|---|---|---|
-| Retrieval recall | 100% | 100% |
-| Context recall | not measured | 100% |
-| Fact coverage | 85% | 100% |
-| Citation correctness | 85% | 100% |
-| Abstain accuracy | 100% | 100% |
-| Case pass rate | 88% | 100% |
-| Cost per run | about $0.05 | about $0.05 |
+Three single runs. Runs 1 and 2 happened while the judge was broken (see the note below the table).
 
-The judge scores from these runs are **not reported**: the judge was handed only chunk ids and titles instead of the
-chunk text, so its numbers did not measure groundedness. That bug is fixed in the code and the judge has not been re-run since.
+| Metric | Run 1 (before retrieval fixes) | Run 2 (after retrieval fixes) | Run 3 (after judge fix) |
+|---|---|---|---|
+| Retrieval recall | 100% | 100% | 100% |
+| Context recall | not measured | 100% | 100% |
+| Fact coverage | 85% | 100% | 100% |
+| Citation correctness | 85% | 100% | 100% |
+| Abstain accuracy | 100% | 100% | 100% |
+| Case pass rate | 88% | 100% | 100% |
+| Judge groundedness (1-5) | 4.27, invalid | 3.92, invalid | **5.00** |
+| Cost per run | about $0.05 | about $0.05 | about $0.05 |
 
-What changed between the runs: run 1 failed two questions that answered `NOT_IN_CONTEXT` even though the right document was
-retrieved. That showed the "expected document in top-k" metric was too lenient, so I added **context recall** and fixed
-what it pointed at (suffix stemming, so "decided" matches "decides", and an exact-match boost for denial codes such as `CO-27`).
+**Judge note:** in runs 1 and 2 the judge was handed only chunk ids and titles instead of the chunk text, so those
+two judge scores did not measure groundedness and should be ignored. That bug is fixed, and run 3 is the first valid
+judge score. A 5.00 is weak evidence on its own: a smaller model (`claude-haiku-4-5`) is grading a larger model's
+short, extractive-style answers over a small corpus, and the judge was not itself checked against human grading.
+
+What changed between runs 1 and 2: run 1 failed two questions that answered `NOT_IN_CONTEXT` even though the right
+document was retrieved. That showed the "expected document in top-k" metric was too lenient, so I added **context
+recall** and fixed what it pointed at (suffix stemming, so "decided" matches "decides", and an exact-match boost for
+denial codes such as `CO-27`).
 
 **How much to trust these numbers:** they come from single runs, the golden set is small and written by the same person
 who wrote the corpus, and I tuned retrieval against that set. Treat 100% as "the pipeline works end to end", not as a
