@@ -1,0 +1,7 @@
+target/
+.git/
+.github/
+eval-report/
+.idea/
+*.iml
+.env
