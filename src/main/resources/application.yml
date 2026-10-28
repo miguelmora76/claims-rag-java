@@ -1,4 +1,23 @@
+server:
+  port: ${PORT:8080}        # port binding comes from the environment
+  shutdown: graceful        # finish in-flight requests on SIGTERM
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true       # /actuator/health/liveness and /actuator/health/readiness
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+
 assistant:
+  eval-report-dir: ${EVAL_REPORT_DIR:eval-report}
   provider: fake
   model: claude-opus-5-5
   judge-model: claude-haiku-4-5
