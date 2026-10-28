@@ -6,6 +6,7 @@ import dev.claimsrag.llm.LlmClient;
 import dev.claimsrag.service.AskService;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,6 +26,9 @@ public class EvalCommand implements ApplicationRunner {
     private final ObjectMapper mapper;
     private final LlmClient llm;
     private final AssistantProperties props;
+
+    @Value("${assistant.eval-report-dir:eval-report}")
+    private String reportDir;
 
     public EvalCommand(AskService service, ObjectMapper mapper, LlmClient llm, AssistantProperties props) {
         this.service = service;
@@ -47,8 +51,9 @@ public class EvalCommand implements ApplicationRunner {
         }
         String md = report.toMarkdown();
         System.out.println(md);
-        Files.createDirectories(Path.of("eval-report"));
-        Files.writeString(Path.of("eval-report/report.md"), md);
+        Path dir = Path.of(reportDir);
+        Files.createDirectories(dir);
+        Files.writeString(dir.resolve("report.md"), md);
         if (report.passRate() < MIN_PASS_RATE) {
             System.err.printf("pass rate %.0f%% below threshold %.0f%%%n", report.passRate() * 100, MIN_PASS_RATE * 100);
             System.exit(1);

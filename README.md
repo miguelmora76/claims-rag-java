@@ -62,7 +62,7 @@ deterministic fake, while the real thing calls Claude.
 | Provider interface with an offline fake for tests and CI | `llm/LlmClient.java`, `llm/FakeLlmClient.java` |
 | RAG: chunking, embeddings, vector search, grounded prompt with citations | `rag/`, `service/AskService.java` |
 | Prompt-injection posture: untrusted context, answer-only-from-context, explicit abstain token | `AskService.SYSTEM` |
-| Token and cost tracking per request and per model | `cost/CostTracker.java`, `GET /api/usage` |
+| Token and cost tracking per request and per model | `cost/CostTracker.java`, `GET /api/usage`, `GET /actuator/prometheus` |
 | Eval suite: golden set, retrieval/context/citation/abstention metrics, optional LLM judge | `eval/`, `src/main/resources/eval/golden.json` |
 | Eval as a CI gate | `EvalSuiteTest`, `.github/workflows/ci.yml` |
 | Pattern-based redaction before text leaves the service | `privacy/PhiRedactor.java` |
@@ -124,7 +124,7 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--assistant.provider=claude"
 ```
 
 Then call the same endpoints as above. The response now contains real token counts and a non-zero `costUsd`, and
-`GET /api/usage` shows the running totals per model.
+`GET /api/usage` shows this instance's running totals per model. For totals across replicas and restarts, scrape `GET /actuator/prometheus` (`assistant_llm_tokens_total`, `assistant_llm_cost_usd_total`, `assistant_llm_requests_total`, tagged by model) and sum in Prometheus.
 
 The default model is `claude-opus-5-5` at `effort: low`. Change it in `src/main/resources/application.yml`.
 
@@ -248,7 +248,7 @@ Set in `src/main/resources/application.yml`, or override on the command line, fo
 | `assistant.min-score` | `0.08` | minimum similarity for a passage to count |
 | `assistant.pricing.*` | see file | USD per million tokens per model. Copied from published rates; verify before relying on it |
 
-Environment variables: `ANTHROPIC_API_KEY` (required for `provider=claude`) and `ANTHROPIC_WORKSPACE_ID` (only for `sk-ant-usr-` keys).
+Environment variables: `PORT` (default 8080), `EVAL_REPORT_DIR` (default `eval-report`), `LOGGING_STRUCTURED_FORMAT_CONSOLE` (e.g. `ecs` for JSON logs on stdout), `ANTHROPIC_API_KEY` (required for `provider=claude`) and `ANTHROPIC_WORKSPACE_ID` (only for `sk-ant-usr-` keys).
 
 ## Project layout
 

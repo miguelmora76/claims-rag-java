@@ -32,7 +32,7 @@ class UnitTests {
     void costTrackerAppliesPriceTableAndAccumulates() {
         var price = new AssistantProperties.Price(4.0, 20.0, 0.2, 5.0);
         var props = new AssistantProperties("fake", "m", "j", 100, null, 3, 0.1, Map.of("m", price));
-        var tracker = new CostTracker(props);
+        var tracker = new CostTracker(props, new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
 
         double c = tracker.record("m", new Usage(1_000_000, 100_000, 0, 0));
         assertThat(c).isEqualTo(4.0 + 2.0);

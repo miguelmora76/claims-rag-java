@@ -3,12 +3,13 @@ image:
 containerPort: 8080
 env:
   ASSISTANT_PROVIDER: fake
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs   # one JSON event per line on stdout
 resources:
   requests: { cpu: 100m, memory: 384Mi }
   limits: { memory: 640Mi }
 readinessProbe:
-  tcpSocket: { port: http }
+  httpGet: { path: /actuator/health/readiness, port: http }
   initialDelaySeconds: 10
 livenessProbe:
-  tcpSocket: { port: http }
+  httpGet: { path: /actuator/health/liveness, port: http }
   initialDelaySeconds: 30
